@@ -14,7 +14,7 @@ The E-Scooter Crash Crawler is a JavaScript-based project designed to scrape and
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/gauravfs-14/e-scooter-crash-crawler
    ```
 2. Navigate to the project directory:
    ```bash
