@@ -163,15 +163,26 @@ async function scrapeArticle(url) {
   }
 }
 
-function saveToExcel(data) {
-  const sorted = data.sort((a, b) => {
-    if (a.Date !== "Unknown" && b.Date !== "Unknown") {
-      return new Date(b.Date) - new Date(a.Date);
-    } else if (a.Date === "Unknown") return 1;
-    else return -1;
+function saveToExcel(newData) {
+  let existingData = [];
+
+  if (fs.existsSync(config.outputFile)) {
+    const workbook = XLSX.readFile(config.outputFile);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    existingData = XLSX.utils.sheet_to_json(sheet);
+  }
+
+  const combined = [...existingData, ...newData];
+
+  // Remove duplicates by URL
+  const uniqueMap = new Map();
+  combined.forEach((item) => {
+    uniqueMap.set(item.URL, item); // Later ones overwrite
   });
 
-  const worksheet = XLSX.utils.json_to_sheet(sorted);
+  const deduped = Array.from(uniqueMap.values());
+
+  const worksheet = XLSX.utils.json_to_sheet(deduped);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Crash News");
 
@@ -190,7 +201,9 @@ function saveToExcel(data) {
   };
 
   XLSX.writeFile(workbook, config.outputFile);
-  console.log(`✅ Saved ${data.length} articles to "${config.outputFile}"`);
+  console.log(
+    `✅ Saved ${deduped.length} total articles to "${config.outputFile}"`
+  );
 }
 
 async function main() {
